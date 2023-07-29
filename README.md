@@ -16,6 +16,19 @@
 
 之后在其他设备(电脑、手机、平板等）打开浏览器，访问电脑端ip:23333即可控制！
 
+## 演示
+
+### 平板(控制端)
+
+https://github.com/yemaster/remote-ctrl/assets/30290923/80ac15ca-2bc2-4520-8536-257fbfe0a40a
+
+### 电脑(被控端)
+
+https://github.com/yemaster/remote-ctrl/assets/30290923/b2e6734f-78d3-4d75-992f-9bb1ab6bf773
+
+
+
+
 ## 支持手势
 
 1. 左键单击，右键单击
