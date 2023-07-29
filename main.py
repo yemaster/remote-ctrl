@@ -153,5 +153,5 @@ def updateScreen():
 
 
 if __name__ == '__main__':
-    print("Mobile Touchpad is running on :23333")
+    print("Remote Ctrl is running on :23333")
     socketio.run(app, port=23333, host='0.0.0.0')
