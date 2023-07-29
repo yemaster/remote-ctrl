@@ -1,0 +1,233 @@
+<!--
+ MIT License
+ 
+ Copyright (c) 2022 huoyijie (https://huoyijie.cn)
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+-->
+<html>
+
+<head>
+  <title>TouchPad</title>
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    #myElement {
+      width: 100%;
+      height: 100%;
+      color: white;
+      background-size: cover;
+    }
+
+    body {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="myScroll">
+    <div id="myElement">
+    </div>
+  </div>
+
+  <script src="/hammer.min.js"></script>
+  <script src="/socket.io.min.js"></script>
+  <script>
+    var myElement = document.getElementById('myElement')
+    var sizeRatio = 1280 / 720
+    var screenSize = [1280, 720]
+    var elementSize = [1280, 720]
+    let im = new Image()
+    let { clientWidth, clientHeight } = myElement
+    function setElementSize() {
+      let windowSize = [document.body.offsetWidth, document.body.offsetHeight]
+      if (windowSize[0] / windowSize[1] < sizeRatio) {
+        clientWidth = windowSize[0]
+        clientHeight = windowSize[0] / sizeRatio
+      }
+      else {
+        clientHeight = windowSize[1]
+        clientWidth = windowSize[1] * sizeRatio
+      }
+      myElement.style.width = clientWidth
+      myElement.style.height = clientHeight
+      elementSize = [clientWidth, clientHeight]
+    }
+    const socket = io({
+      'transports': ['websocket'],
+      allowUpgrades: false,
+      query: { clientWidth, clientHeight }
+    })
+
+    window.addEventListener("resize", () => {
+      setElementSize()
+    })
+
+    socket.on('connect', () => {
+      console.log('connect to server')
+      socket.emit("getShot")
+    }).on('disconnect', (reason) => {
+      console.log('client disconnect', reason)
+      if (reason === "io server disconnect") {
+        // the disconnection was initiated by the server, you need to reconnect manually
+        socket.connect()
+      }
+    }).on('connect_error', (err) => {
+      console.error('client connect_error', err)
+    }).on('screenInfo', (d) => {
+      //console.log(d)
+      screenSize = [d.width, d.height]
+      sizeRatio = screenSize[0] / screenSize[1]
+      setElementSize()
+    }).on('screenShow', (d) => {
+      let url = "data:image/jpeg;base64," + d
+      im.src = url
+      im.onload = function () {
+        myElement.style.backgroundImage = "url('" + url + "')"
+        socket.emit("getShot")
+        //im = null
+      }
+    })
+
+    var mc = new Hammer.Manager(myElement)
+
+    mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL }))
+    mc.add(new Hammer.Tap({ event: 'tap' }))
+    mc.add(new Hammer.Tap({ event: 'righttap', pointers: 2 }))
+    mc.get('righttap').recognizeWith('tap')
+    mc.add(new Hammer.Press({}))
+
+    var norm = (xy, wh) => {
+      if (xy < 0) {
+        return 0
+      } else if (xy > wh) {
+        return wh
+      } else {
+        return xy
+      }
+    }
+
+    const startAt = { x: 0, y: 0 }
+
+    mc.on('panstart', (e) => {
+      e.preventDefault()
+      startAt.x = e.center.x / elementSize[0]
+      startAt.y = e.center.y / elementSize[1]
+      socket.emit('panstart', {
+        x: startAt.x,
+        y: startAt.y
+      })
+    }).on('panmove', (e) => {
+      e.preventDefault()
+      var { x, y } = e.center
+      x = norm(x, clientWidth)
+      x = x / elementSize[0]
+      y = norm(y, clientHeight)
+      y = y / elementSize[1]
+      socket.emit('panmove', { x, y })
+    }).on('panend', (e) => {
+      e.preventDefault()
+      startAt.x = 0
+      startAt.y = 0
+      socket.emit('panend')
+    }).on('tap', (e) => {
+      let { x, y } = e.center
+      let RealX = x / elementSize[0]
+      let RealY = y / elementSize[1]
+      console.log(RealX, RealY)
+      e.preventDefault()
+      socket.emit('tap', {
+        x: RealX,
+        y: RealY
+      })
+    }).on('righttap', (e) => {
+      let { x, y } = e.center
+      let RealX = x / elementSize[0]
+      let RealY = y / elementSize[1]
+      //console.log(RealX, RealY)
+      e.preventDefault()
+      console.debug('righttap')
+      socket.emit('righttap', {
+        x: RealX,
+        y: RealY
+      })
+    }).on('press', (e) => {
+      e.preventDefault()
+      let { x, y } = e.center
+      let RealX = x / elementSize[0]
+      let RealY = y / elementSize[1]
+      socket.emit('press', {
+        x: RealX,
+        y: RealY
+      })
+    }).on('pressup', (e) => {
+      e.preventDefault()
+      socket.emit('pressup')
+    })
+
+    var myScroll = document.getElementById('myScroll')
+    var mc2 = new Hammer.Manager(myScroll)
+    mc2.add(new Hammer.Pinch({ enable: true }))
+    mc2.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 }))
+
+    mc2.on('panleft', (e) => {
+      e.preventDefault()
+      socket.emit('panleft')
+    }).on('panright', (e) => {
+      e.preventDefault()
+      socket.emit('panright')
+    }).on('panup', (e) => {
+      e.preventDefault()
+      socket.emit('panup')
+    }).on('pandown', (e) => {
+      e.preventDefault()
+      socket.emit('pandown')
+    }).on('pinchstart', (e) => {
+      e.preventDefault()
+      let { x, y } = e.center
+      let RealX = x / elementSize[0]
+      let RealY = y / elementSize[1]
+      socket.emit("pinchstart", {
+        x: RealX,
+        y: RealY
+      })
+    }).on('pinchmove', (e) => {
+      e.preventDefault()
+      let { x, y } = e.center
+      let RealX = x / elementSize[0]
+      let RealY = y / elementSize[1]
+      socket.emit("pinchmove", {
+        x: RealX,
+        y: RealY
+      })
+    })
+
+    document.addEventListener("keydown", (e) => {
+      e.preventDefault()
+      socket.emit("keydown", e.key)
+    })
+
+    document.addEventListener("keyup", (e) => {
+      e.preventDefault()
+      socket.emit("keyup", e.key)
+    })
+  </script>
+</body>
+
+</html>
