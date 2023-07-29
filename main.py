@@ -134,6 +134,7 @@ def pinchStart(data):
 
 @socketio.on("pinchmove")
 def pinchMove(data):
+    """双指滑动"""
     global pinchX, pinchY
     mouse.scroll(coords=(int(data["x"] * width), int(data["y"]
                                                      * height)), wheel_dist=(int(data["y"] * height)-pinchY) // 100)
