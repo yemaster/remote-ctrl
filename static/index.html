@@ -155,7 +155,8 @@
             x = x / elementSize[0]
             y = norm(y, clientHeight)
             y = y / elementSize[1]
-            socket.emit('panmove', { x, y, p: e.pointerType })
+            deltaY = e.deltaY / elementSize[1]
+            socket.emit('panmove', { x, y, deltaY, p: e.pointerType })
         }).on('panend', (e) => {
             e.preventDefault()
             startAt.x = 0

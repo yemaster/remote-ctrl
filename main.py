@@ -1,13 +1,33 @@
 from PIL import ImageGrab
 from io import BytesIO
 import time
-from base64 import b64encode
-from flask import Flask, request
+import json
+from os import path
+import webbrowser
+from flask import Flask, request, render_template
 from flask_socketio import SocketIO
 from pywinauto import mouse, keyboard
 from pywinauto.timings import Timings
 
-maxFps = 10
+# 获取设置
+defaultConfig = {
+    "maxFps": 10,
+    "scrollFlexibility": 200,
+    "port": 23333,
+}
+
+config = defaultConfig
+if path.exists("./config.json"):
+    tempConfig = {}
+    try:
+        with open("./config.json", "r", encoding="utf-8") as f:
+            tempConfig = json.load(f)
+    except Exception:
+        pass
+    for i in defaultConfig:
+        if (not i in tempConfig) or (type(tempConfig[i]) != type(defaultConfig[i])):
+            tempConfig[i] = defaultConfig[i]
+    config = tempConfig
 
 
 app = Flask(__name__, static_url_path="")
@@ -34,7 +54,7 @@ def screencap():
             startTime = time.time()
         count += 1
         #print("fps: ", count / (time.time() - startTime))
-        socketio.sleep(max(count / maxFps - time.time() + startTime, 0.005))
+        socketio.sleep(max(count / config["maxFps"] - time.time() + startTime, 0.005))
 
 
 screen = ImageGrab.grab()
@@ -48,6 +68,25 @@ isPinch = False
 def index():
     return app.send_static_file('index.html')
 
+@app.route('/settings', methods=["POST", "GET"])
+def settings():
+    if request.method == "GET":
+        return render_template("control.html", settings=config, suc=0)
+    else:
+        newFps = int(request.form.get('maxFps'))
+        newScrollFlexibility = int(request.form.get('scrollFlexibility'))
+        if type(newFps) == type(config["maxFps"]):
+            config["maxFps"] = newFps
+        if type(newScrollFlexibility) == type(config["scrollFlexibility"]):
+            config["scrollFlexibility"] = newScrollFlexibility
+        isSuccess = 1
+        try:
+            with open("config.json", "w") as f:
+                json.dump(config, f)
+        except Exception:
+            isSuccess = 0
+            print("[ERROR] Cannot save settings")
+        return render_template("control.html", settings=config, suc=isSuccess)
 
 """
 @app.route('/shot')
@@ -101,12 +140,9 @@ def panstart(data):
 @socketio.on("panmove")
 def panmove(data):
     """鼠标移动中"""
-    global isPress, pinchX, pinchY
-    if isPinch or data["p"] == "touch":
-        mouse.scroll(coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=(
-            int(data["y"] * height)-pinchY) // 120)
-        pinchX = int(data["x"] * width)
-        pinchY = int(data["y"] * height)
+    if (not isPress) and data["p"] == "touch":
+        mouse.scroll(coords=(int(
+            data["x"] * width), int(data["y"] * height)), wheel_dist=int(data["deltaY"] * height / config["scrollFlexibility"]))
     else:
         mouse.move(
             coords=(int(data["x"] * width), int(data["y"] * height)))
@@ -114,12 +150,11 @@ def panmove(data):
 
 @socketio.on("panend")
 def panend():
-    """鼠标移动中"""
     global isPress, isPinch
     if isPress:
         isPress = False
         mouse.release()
-    else:
+    if isPinch:
         isPinch = False
 
 
@@ -148,7 +183,7 @@ def pinchStart(data):
 
 
 @socketio.on("pinchend")
-def pinchMove(data):
+def pinchMove():
     """双指滑动"""
     global isPinch
     isPinch = False
@@ -160,6 +195,7 @@ def keydown(data):
 
 
 if __name__ == '__main__':
-    print("Remote Ctrl is running on :23333")
+    print("Votrl Remote Ctrl is running on :23333")
     socketio.start_background_task(screencap)
-    socketio.run(app, port=23333, host='0.0.0.0')
+    webbrowser.open("http://localhost:" + str(config["port"]) + "/settings")
+    socketio.run(app, port=config["port"], host='0.0.0.0')
