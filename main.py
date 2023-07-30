@@ -2,7 +2,7 @@ from PIL import ImageGrab
 from io import BytesIO
 import time
 import json
-from os import path
+from os import path, _exit
 import webbrowser
 from flask import Flask, request, render_template
 from flask_socketio import SocketIO
@@ -53,8 +53,9 @@ def screencap():
             count = 0
             startTime = time.time()
         count += 1
-        #print("fps: ", count / (time.time() - startTime))
-        socketio.sleep(max(count / config["maxFps"] - time.time() + startTime, 0.005))
+        # print("fps: ", count / (time.time() - startTime))
+        socketio.sleep(
+            max(count / config["maxFps"] - time.time() + startTime, 0.005))
 
 
 screen = ImageGrab.grab()
@@ -68,10 +69,11 @@ isPinch = False
 def index():
     return app.send_static_file('index.html')
 
+
 @app.route('/settings', methods=["POST", "GET"])
 def settings():
     if request.method == "GET":
-        return render_template("control.html", settings=config, suc=0)
+        return render_template("control.html", settings=config, suc=-1)
     else:
         newFps = int(request.form.get('maxFps'))
         newScrollFlexibility = int(request.form.get('scrollFlexibility'))
@@ -87,6 +89,13 @@ def settings():
             isSuccess = 0
             print("[ERROR] Cannot save settings")
         return render_template("control.html", settings=config, suc=isSuccess)
+
+
+@app.route('/shutdown', methods=["POST"])
+def shutdown():
+    if request.form.get("shutdown") == "orz":
+        _exit(0)
+
 
 """
 @app.route('/shot')
@@ -105,7 +114,7 @@ def on_connect():
 @socketio.on("tap")
 def tap(data):
     """鼠标点击"""
-    #print("Tap", int(data["x"] * width), int(data["y"] * height))
+    # print("Tap", int(data["x"] * width), int(data["y"] * height))
     mouse.click(
         coords=(int(data["x"] * width), int(data["y"] * height)))
 
@@ -113,7 +122,7 @@ def tap(data):
 @socketio.on("righttap")
 def tap(data):
     """鼠标点击"""
-    #print("Tap", int(data["x"] * width), int(data["y"] * height))
+    # print("Tap", int(data["x"] * width), int(data["y"] * height))
     mouse.right_click(
         coords=(int(data["x"] * width), int(data["y"] * height)))
 

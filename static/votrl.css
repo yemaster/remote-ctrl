@@ -13,6 +13,11 @@ h2 {
     font-size: 32px;
 }
 
+h4 {
+    font-weight: 300;
+    font-size: 24px;
+}
+
 .form-group:not(:last-of-type) {
     margin-bottom: 10px;
 }
@@ -41,4 +46,8 @@ button {
     border-radius: 5px;
     background-color: #1780db;
     color: #fff;
+}
+
+button.red {
+    background-color: #db2828;
 }

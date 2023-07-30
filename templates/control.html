@@ -15,6 +15,15 @@
     {% endif %}
     <div class="container">
         <h2>Settings - Votrl Remote Control</h2>
+        <hr />
+        <h4>Core</h4>
+        <form method="post" action="/shutdown">
+            <div class="form-group">
+                <input type="hidden" name="shutdown" value="orz">
+                <button type="submit" class="red">Shutdown</button>
+            </div>
+        </form>
+        <h4>Basic Settings</h4>
         <form method="post">
             <div class="form-group">
                 <label>ScreenShare Max Fps:</label>
