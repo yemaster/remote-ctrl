@@ -1,7 +1,10 @@
 from PIL import ImageGrab
+import mss
 from io import BytesIO
+import cv2
 import time
 import json
+import numpy as np
 from os import path, _exit
 import webbrowser
 from flask import Flask, request, render_template
@@ -12,7 +15,7 @@ from pywinauto.timings import Timings
 # 获取设置
 defaultConfig = {
     "maxFps": 10,
-    "scrollFlexibility": 200,
+    "scrollFlexibility": 120,
     "port": 23333,
 }
 
@@ -39,16 +42,27 @@ Timings.after_clickinput_wait = 0
 startTime = time.time()
 count = 0
 
+screen = ImageGrab.grab()
+width, height = screen.size
+
+
+screenCapture = mss.mss()
 
 def screencap():
     global count, startTime
     while True:
-        img = ImageGrab.grab()
-        buffer = BytesIO()
-        img.save(buffer, 'jpeg')
+        #img = ImageGrab.grab()
+        img = screenCapture.grab({
+            "left": 0,
+            "top": 0,
+            "width": width,
+            "height": height
+        })
+        img = np.array(img)
+        img = cv2.imencode(".jpg", img)[1].tobytes()
         # yield (b'--frame\r\n'
         #       b'Content-Type: image/jpeg\r\n\r\n' + buffer.getvalue() + b'\r\n\r\n')
-        socketio.emit('screenStream', buffer.getvalue())
+        socketio.emit('screenStream', img)
         if count > 20:
             count = 0
             startTime = time.time()
@@ -57,9 +71,6 @@ def screencap():
         socketio.sleep(
             max(count / config["maxFps"] - time.time() + startTime, 0.005))
 
-
-screen = ImageGrab.grab()
-width, height = screen.size
 
 isPress = False
 isPinch = False
@@ -146,23 +157,37 @@ def panstart(data):
     pinchY = int(data["y"] * height)
 
 
+sumDeltaY = 0
+
+
 @socketio.on("panmove")
 def panmove(data):
     """鼠标移动中"""
+    global sumDeltaY, pinchX, pinchY
+    #print(data["x"] * width, data["y"] * height)
     if (not isPress) and data["p"] == "touch":
-        mouse.scroll(coords=(int(
-            data["x"] * width), int(data["y"] * height)), wheel_dist=int(data["deltaY"] * height / config["scrollFlexibility"]))
+        sumDeltaY += int(data["y"] * height) - pinchY
+        if sumDeltaY > config["scrollFlexibility"]:
+            mouse.scroll(
+                coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=1)
+            sumDeltaY -= config["scrollFlexibility"]
+        if sumDeltaY < -config["scrollFlexibility"]:
+            mouse.scroll(
+                coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=-1)
+            sumDeltaY += config["scrollFlexibility"]
+        pinchX = int(data["x"] * width)
+        pinchY = int(data["y"] * height)
     else:
         mouse.move(
             coords=(int(data["x"] * width), int(data["y"] * height)))
 
 
 @socketio.on("panend")
-def panend():
+def panend(data):
     global isPress, isPinch
     if isPress:
         isPress = False
-        mouse.release()
+        mouse.release(button="left", coords=(int(data["x"] * width), int(data["y"] * height)))
     if isPinch:
         isPinch = False
 
@@ -177,10 +202,10 @@ def press(data):
 
 
 @socketio.on("pressup")
-def press():
+def press(data):
     global isPress
     isPress = False
-    mouse.release()
+    mouse.release(button="left", coords=(int(data["x"] * width), int(data["y"] * height)))
 
 
 @socketio.on("pinchstart")
