@@ -1,12 +1,13 @@
 from PIL import ImageGrab
-import cv2
-import numpy as np
-from threading import Thread
+from io import BytesIO
+import time
 from base64 import b64encode
 from flask import Flask, request
 from flask_socketio import SocketIO
 from pywinauto import mouse, keyboard
 from pywinauto.timings import Timings
+
+maxFps = 10
 
 
 app = Flask(__name__, static_url_path="")
@@ -15,38 +16,45 @@ socketio = SocketIO(app, async_mode="eventlet")
 Timings.after_setcursorpos_wait = 0
 Timings.after_clickinput_wait = 0
 
-
-def screenshot():
-    """获取屏幕截图，以base64输出"""
-    shot = np.array(ImageGrab.grab())
-    shot = cv2.cvtColor(shot, cv2.COLOR_RGB2BGR)
-    encode_image = cv2.imencode('.jpg', shot)[1].tobytes()
-    return b64encode(encode_image).decode("ascii")
+startTime = time.time()
+count = 0
 
 
-nowScreenShot = ""
-
-
-def getScreenShot():
-    global nowScreenShot
+def screencap():
+    global count, startTime
     while True:
-        nowScreenShot = screenshot()
+        img = ImageGrab.grab()
+        buffer = BytesIO()
+        img.save(buffer, 'jpeg')
+        # yield (b'--frame\r\n'
+        #       b'Content-Type: image/jpeg\r\n\r\n' + buffer.getvalue() + b'\r\n\r\n')
+        socketio.emit('screenStream', buffer.getvalue())
+        if count > 20:
+            count = 0
+            startTime = time.time()
+        count += 1
+        #print("fps: ", count / (time.time() - startTime))
+        socketio.sleep(max(count / maxFps - time.time() + startTime, 0.005))
 
 
 screen = ImageGrab.grab()
 width, height = screen.size
 
 isPress = False
-
-
-@app.before_first_request
-def doScreenShot():
-    Thread(target=getScreenShot, daemon=True).start()
+isPinch = False
 
 
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+
+"""
+@app.route('/shot')
+def shot():
+    return Response(screencap(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+"""
 
 
 @socketio.on('connect')
@@ -71,44 +79,54 @@ def tap(data):
         coords=(int(data["x"] * width), int(data["y"] * height)))
 
 
-panX = 0
-panY = 0
+pinchX = 0
+pinchY = 0
 
 
 @socketio.on("panstart")
 def panstart(data):
     """鼠标移动开始"""
-    global panX, panY
-    print("PanStart")
+    global pinchX, pinchY, isPress
+    # print("PanStart")
+    if data["p"] == "pen":
+        isPress = True
+        mouse.press(
+            coords=(int(data["x"] * width), int(data["y"] * height)), button="left")
     mouse.move(
         coords=(int(data["x"] * width), int(data["y"] * height)))
-    panX = int(data["x"] * width)
-    panY = int(data["y"] * height)
+    pinchX = int(data["x"] * width)
+    pinchY = int(data["y"] * height)
 
 
 @socketio.on("panmove")
 def panmove(data):
     """鼠标移动中"""
-    global isPress, panX, panY
-    mouse.move(
-        coords=(int(data["x"] * width), int(data["y"] * height)))
-    panX = int(data["x"] * width)
-    panY = int(data["y"] * height)
+    global isPress, pinchX, pinchY
+    if isPinch or data["p"] == "touch":
+        mouse.scroll(coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=(
+            int(data["y"] * height)-pinchY) // 120)
+        pinchX = int(data["x"] * width)
+        pinchY = int(data["y"] * height)
+    else:
+        mouse.move(
+            coords=(int(data["x"] * width), int(data["y"] * height)))
 
 
 @socketio.on("panend")
 def panend():
     """鼠标移动中"""
-    global isPress
+    global isPress, isPinch
     if isPress:
         isPress = False
         mouse.release()
+    else:
+        isPinch = False
 
 
 @socketio.on("press")
 def press(data):
     global isPress
-    print("Press")
+    # print("Press")
     isPress = True
     mouse.press(
         coords=(int(data["x"] * width), int(data["y"] * height)), button="left")
@@ -121,37 +139,27 @@ def press():
     mouse.release()
 
 
-pinchX = 0
-pinchY = 0
-
-
 @socketio.on("pinchstart")
 def pinchStart(data):
-    global pinchX, pinchY
+    global pinchX, pinchY, isPinch
     pinchX = int(data["x"] * width)
     pinchY = int(data["y"] * height)
+    isPinch = True
 
 
-@socketio.on("pinchmove")
+@socketio.on("pinchend")
 def pinchMove(data):
     """双指滑动"""
-    global pinchX, pinchY
-    mouse.scroll(coords=(int(data["x"] * width), int(data["y"]
-                                                     * height)), wheel_dist=(int(data["y"] * height)-pinchY) // 100)
-    pinchX = int(data["x"] * width)
-    pinchY = int(data["y"] * height)
+    global isPinch
+    isPinch = False
+
 
 @socketio.on("keydown")
 def keydown(data):
     keyboard.send_keys(data)
 
 
-@socketio.on("getShot")
-def updateScreen():
-    # print("getShot")
-    socketio.emit("screenShow", nowScreenShot, room=request.sid)
-
-
 if __name__ == '__main__':
     print("Remote Ctrl is running on :23333")
+    socketio.start_background_task(screencap)
     socketio.run(app, port=23333, host='0.0.0.0')
