@@ -1,6 +1,5 @@
 from PIL import ImageGrab
 import mss
-from io import BytesIO
 import cv2
 import time
 import json
@@ -17,6 +16,7 @@ defaultConfig = {
     "maxFps": 10,
     "scrollFlexibility": 120,
     "port": 23333,
+    "imgWidth": 1366
 }
 
 config = defaultConfig
@@ -48,6 +48,7 @@ width, height = screen.size
 
 screenCapture = mss.mss()
 
+
 def screencap():
     global count, startTime
     while True:
@@ -59,6 +60,9 @@ def screencap():
             "height": height
         })
         img = np.array(img)
+        imgWidth = config["imgWidth"]
+        imgHeight = int(height * imgWidth / width)
+        img = cv2.resize(img, (imgWidth, imgHeight))
         img = cv2.imencode(".jpg", img)[1].tobytes()
         # yield (b'--frame\r\n'
         #       b'Content-Type: image/jpeg\r\n\r\n' + buffer.getvalue() + b'\r\n\r\n')
@@ -88,10 +92,13 @@ def settings():
     else:
         newFps = int(request.form.get('maxFps'))
         newScrollFlexibility = int(request.form.get('scrollFlexibility'))
+        newImgWidth = int(request.form.get('imgWidth'))
         if type(newFps) == type(config["maxFps"]):
             config["maxFps"] = newFps
         if type(newScrollFlexibility) == type(config["scrollFlexibility"]):
             config["scrollFlexibility"] = newScrollFlexibility
+        if type(newImgWidth) == type(config["imgWidth"]):
+            config["imgWidth"] = newImgWidth
         isSuccess = 1
         try:
             with open("config.json", "w") as f:
@@ -187,7 +194,8 @@ def panend(data):
     global isPress, isPinch
     if isPress:
         isPress = False
-        mouse.release(button="left", coords=(int(data["x"] * width), int(data["y"] * height)))
+        mouse.release(button="left", coords=(
+            int(data["x"] * width), int(data["y"] * height)))
     if isPinch:
         isPinch = False
 
@@ -205,7 +213,8 @@ def press(data):
 def press(data):
     global isPress
     isPress = False
-    mouse.release(button="left", coords=(int(data["x"] * width), int(data["y"] * height)))
+    mouse.release(button="left", coords=(
+        int(data["x"] * width), int(data["y"] * height)))
 
 
 @socketio.on("pinchstart")

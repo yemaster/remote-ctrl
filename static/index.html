@@ -46,6 +46,7 @@
         let im = new Image()
         let { clientWidth, clientHeight } = myElement
 
+        let imgTemp = null
         let imgBinary = ""
 
         // 保持元素的长宽比和屏幕一致
@@ -90,6 +91,9 @@
             sizeRatio = screenSize[0] / screenSize[1]
             setElementSize()
         }).on("screenStream", (d) => {
+            //imgTemp = d
+            //let d = imgTemp
+            //imgTemp = null
             imgBinary = ""
             let bytes = new Uint8Array(d)
             let len = bytes.byteLength
@@ -195,7 +199,7 @@
         var myScroll = document.getElementById('myScroll')
         var mc2 = new Hammer.Manager(myScroll)
         mc2.add(new Hammer.Pinch({ enable: true }))
-        mc2.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2, interval: 100 }))
+        mc2.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 }))
 
         mc2.on('panleft', (e) => {
             e.preventDefault()
