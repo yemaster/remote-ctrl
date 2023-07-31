@@ -48,6 +48,7 @@
 
         let imgTemp = null
         let imgBinary = ""
+        let processingScreen = false
 
         // 保持元素的长宽比和屏幕一致
         function setElementSize() {
@@ -94,16 +95,20 @@
             //imgTemp = d
             //let d = imgTemp
             //imgTemp = null
-            imgBinary = ""
-            let bytes = new Uint8Array(d)
-            let len = bytes.byteLength
-            for (let i = 0; i < len; ++i)
-                imgBinary += String.fromCharCode(bytes[i])
-            let url = "data:image/jpeg;base64," + btoa(imgBinary)
-            //console.log(url)
-            im.src = url
-            im.onload = () => {
-                myScroll.style.backgroundImage = "url('" + url + "')"
+            if (!processingScreen) {
+                processingScreen = true
+                imgBinary = ""
+                let bytes = new Uint8Array(d)
+                let len = bytes.byteLength
+                for (let i = 0; i < len; ++i)
+                    imgBinary += String.fromCharCode(bytes[i])
+                let url = "data:image/jpeg;base64," + btoa(imgBinary)
+                //console.log(url)
+                im.src = url
+                im.onload = () => {
+                    myScroll.style.backgroundImage = "url('" + url + "')"
+                    processingScreen = false
+                }
             }
         })
 
