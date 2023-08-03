@@ -1,7 +1,8 @@
 Pillow
+mss
 opencv-python
 numpy
 flask
 flask_socketio
-pywinauto
+pywin32
 eventlet

@@ -1,4 +1,3 @@
-from PIL import ImageGrab
 import mss
 import cv2
 import time
@@ -8,8 +7,7 @@ from os import path, _exit
 import webbrowser
 from flask import Flask, request, render_template
 from flask_socketio import SocketIO
-from pywinauto import mouse, keyboard
-from pywinauto.timings import Timings
+from auto import get_screen_size, screengrab, mouse_move, mouse_click, mouse_scroll, mouse_press, mouse_release, press_keys, press_key, release_key, tap_key
 
 # 获取设置
 defaultConfig = {
@@ -36,29 +34,21 @@ if path.exists("./config.json"):
 app = Flask(__name__, static_url_path="")
 socketio = SocketIO(app, async_mode="eventlet")
 
-Timings.after_setcursorpos_wait = 0
-Timings.after_clickinput_wait = 0
-
 startTime = time.time()
 count = 0
 
-screen = ImageGrab.grab()
-width, height = screen.size
+# 缩放后的屏幕大小
+width, height = get_screen_size()
+print(width, height)
 
-
-screenCapture = mss.mss()
+# 截图函数
 
 
 def screencap():
     global count, startTime
     while True:
         #img = ImageGrab.grab()
-        img = screenCapture.grab({
-            "left": 0,
-            "top": 0,
-            "width": width,
-            "height": height
-        })
+        img = screengrab()
         img = np.array(img)
         imgWidth = config["imgWidth"]
         imgHeight = int(height * imgWidth / width)
@@ -132,17 +122,15 @@ def on_connect():
 @socketio.on("tap")
 def tap(data):
     """鼠标点击"""
-    # print("Tap", int(data["x"] * width), int(data["y"] * height))
-    mouse.click(
-        coords=(int(data["x"] * width), int(data["y"] * height)))
+    print("Tap", data["x"], data["y"])
+    mouse_click(data["x"], data["y"])
 
 
 @socketio.on("righttap")
 def tap(data):
     """鼠标点击"""
-    # print("Tap", int(data["x"] * width), int(data["y"] * height))
-    mouse.right_click(
-        coords=(int(data["x"] * width), int(data["y"] * height)))
+    # print("Tap", data["x"], data["y"])
+    mouse_click(data["x"], data["y"], button="right")
 
 
 pinchX = 0
@@ -156,10 +144,8 @@ def panstart(data):
     # print("PanStart")
     if data["p"] == "pen":
         isPress = True
-        mouse.press(
-            coords=(int(data["x"] * width), int(data["y"] * height)), button="left")
-    mouse.move(
-        coords=(int(data["x"] * width), int(data["y"] * height)))
+        mouse_press(data["x"], data["y"])
+    mouse_move(data["x"], data["y"])
     pinchX = int(data["x"] * width)
     pinchY = int(data["y"] * height)
 
@@ -171,22 +157,19 @@ sumDeltaY = 0
 def panmove(data):
     """鼠标移动中"""
     global sumDeltaY, pinchX, pinchY
-    #print(data["x"] * width, data["y"] * height)
+    # print(data["x"], data["y"])
     if (not isPress) and data["p"] == "touch":
-        sumDeltaY += int(data["y"] * height) - pinchY
+        sumDeltaY += data["y"] - pinchY
         if sumDeltaY > config["scrollFlexibility"]:
-            mouse.scroll(
-                coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=1)
+            mouse_scroll(None, 120)
             sumDeltaY -= config["scrollFlexibility"]
         if sumDeltaY < -config["scrollFlexibility"]:
-            mouse.scroll(
-                coords=(int(data["x"] * width), int(data["y"] * height)), wheel_dist=-1)
+            mouse_scroll(None, -120)
             sumDeltaY += config["scrollFlexibility"]
-        pinchX = int(data["x"] * width)
-        pinchY = int(data["y"] * height)
+        pinchX = data["x"]
+        pinchY = data["y"]
     else:
-        mouse.move(
-            coords=(int(data["x"] * width), int(data["y"] * height)))
+        mouse_move(data["x"], data["y"])
 
 
 @socketio.on("panend")
@@ -194,8 +177,7 @@ def panend(data):
     global isPress, isPinch
     if isPress:
         isPress = False
-        mouse.release(button="left", coords=(
-            int(data["x"] * width), int(data["y"] * height)))
+        mouse_release(data["x"], data["y"])
     if isPinch:
         isPinch = False
 
@@ -205,24 +187,38 @@ def press(data):
     global isPress
     # print("Press")
     isPress = True
-    mouse.press(
-        coords=(int(data["x"] * width), int(data["y"] * height)), button="left")
+    mouse_press(data["x"], data["y"])
 
 
 @socketio.on("pressup")
 def press(data):
     global isPress
     isPress = False
-    mouse.release(button="left", coords=(
-        int(data["x"] * width), int(data["y"] * height)))
+    mouse_release(data["x"], data["y"])
+
+
+lastPinchScale = 1
 
 
 @socketio.on("pinchstart")
 def pinchStart(data):
-    global pinchX, pinchY, isPinch
-    pinchX = int(data["x"] * width)
-    pinchY = int(data["y"] * height)
+    global pinchX, pinchY, isPinch, lastPinchScale
+    pinchX = data["x"]
+    pinchY = data["y"]
     isPinch = True
+    lastPinchScale = 1
+
+
+@socketio.on("pinchmove")
+def pinchStart(data):
+    global lastPinchScale
+    #print(data, lastPinchScale)
+    if data / lastPinchScale >= 1.1:
+        press_keys(["CTRL", '='])
+        lastPinchScale = data
+    if lastPinchScale / data >= 1.1:
+        press_keys(["CTRL", '-'])
+        lastPinchScale = data
 
 
 @socketio.on("pinchend")
@@ -232,9 +228,19 @@ def pinchMove():
     isPinch = False
 
 
+@socketio.on("keytap")
+def keydown(data):
+    tap_key(data)
+
+
 @socketio.on("keydown")
 def keydown(data):
-    keyboard.send_keys(data)
+    press_key(data)
+
+
+@socketio.on("keyup")
+def keydown(data):
+    release_key(data)
 
 
 if __name__ == '__main__':

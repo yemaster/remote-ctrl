@@ -25,12 +25,271 @@
         body {
             margin: 0;
         }
+
+        #vKeyboard {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #444;
+            font-family: "Arial";
+            padding: 8px 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            background-color: #fdfeff;
+            user-select: none;
+            display: none;
+        }
+
+        .vKeyRow::after {
+            content: " ";
+            display: block;
+            clear: both;
+        }
+
+        .vKeyRow>* {
+            float: left;
+        }
+
+        .vKeyRow>*:not(:last-child) {
+            margin-right: 3px;
+        }
+
+        .vKeyRow:not(:first-child) {
+            margin-top: 5px;
+        }
+
+        .vKey {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            font-size: 14.4px;
+            line-height: 32px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .vKeyS {
+            text-align: left;
+            font-size: 10.4px;
+            width: 25.6px;
+            height: 28.8px;
+            padding-left: 6.4px;
+            padding-top: 3.2px;
+            line-height: 12.8px;
+        }
+
+        .vKeyLeft {
+            text-align: left;
+            padding-left: 9.6px;
+            font-size: 11.2px;
+        }
+
+        .vKeyTab {
+            width: 38.4px;
+        }
+
+        .vKeyCapsLk {
+            width: 50.67px;
+        }
+
+        #vKeyShift {
+            width: 70.4px;
+        }
+
+        .vKeyRight {
+            text-align: right;
+            padding-right: 9.6px;
+            font-size: 11.2px;
+        }
+
+        .vKeyBackSpace {
+            width: 41.6px;
+            padding-top: 9.6px;
+            height: 22.4px;
+        }
+
+        .vKeyLine2 {
+            width: 19.2px;
+        }
+
+        .vKeyEnter {
+            width: 49.6px;
+        }
+
+        #vKeyShift2 {
+            width: 65.33px;
+        }
+
+        .vKeySpace {
+            width: 184px;
+        }
+
+        .vKeyRow:last-child>.vKey {
+            font-size: 10.4px;
+        }
+
+        .vKeyWin {
+            padding-top: 9.6px;
+            height: 22.4px;
+        }
+
+        .vKeyRev {
+            transform: rotate(180deg);
+        }
+
+        .vKeyUp,
+        .vKeyTop {
+            padding-top: 1.6px;
+            height: 14.4px;
+            line-height: 14.4px;
+            font-size: 11.2px;
+        }
+
+        .vKeyTop {
+            width: 28.67px;
+        }
+
+        .vKeyUp:first-child {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .vKeyUp:last-child {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        #vKeyboardControl {
+            width: 100%;
+            height: 20px;
+            line-height: 20px;
+            font-size: 14px;
+        }
+
+        .closeButton {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 22px;
+            color: #666;
+        }
+
+        #tools {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #fff;
+            padding: 6px 10px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, .2);
+        }
     </style>
 </head>
 
 <body>
     <div id="myScroll">
         <div id="myElement">
+        </div>
+    </div>
+    <div id="tools">
+        <img src="/keyboard.svg" width="24px" height="24px" id="keyboardToggle2">
+    </div>
+    <div id="vKeyboard">
+        <div id="vKeyboardControl">虚拟键盘<div class="closeButton" id="keyboardToggle">×</div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyWin vKeyTop">Esc</div>
+            <div class="vKey vKeyWin vKeyTop">F1</div>
+            <div class="vKey vKeyWin vKeyTop">F2</div>
+            <div class="vKey vKeyWin vKeyTop">F3</div>
+            <div class="vKey vKeyWin vKeyTop">F4</div>
+            <div class="vKey vKeyWin vKeyTop">F5</div>
+            <div class="vKey vKeyWin vKeyTop">F6</div>
+            <div class="vKey vKeyWin vKeyTop">F7</div>
+            <div class="vKey vKeyWin vKeyTop">F8</div>
+            <div class="vKey vKeyWin vKeyTop">F9</div>
+            <div class="vKey vKeyWin vKeyTop">F10</div>
+            <div class="vKey vKeyWin vKeyTop">F11</div>
+            <div class="vKey vKeyWin vKeyTop">F12</div>
+            <div class="vKey vKeyWin vKeyTop">Ins</div>
+            <div class="vKey vKeyWin vKeyTop">PrtSc</div>
+            <div class="vKey vKeyWin vKeyTop">Del</div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyS">~<br>`</div>
+            <div class="vKey vKeyS">!<br>1</div>
+            <div class="vKey vKeyS">@<br>2</div>
+            <div class="vKey vKeyS">#<br>3</div>
+            <div class="vKey vKeyS">$<br>4</div>
+            <div class="vKey vKeyS">%<br>5</div>
+            <div class="vKey vKeyS">^<br>6</div>
+            <div class="vKey vKeyS">&<br>7</div>
+            <div class="vKey vKeyS">*<br>8</div>
+            <div class="vKey vKeyS">(<br>9</div>
+            <div class="vKey vKeyS">)<br>0</div>
+            <div class="vKey vKeyS">—<br>-</div>
+            <div class="vKey vKeyS">+<br>=</div>
+            <div class="vKey vKeyRight vKeyBackSpace"><img src="/backspace.svg" width="12.8" height="12.8"></div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyLeft vKeyTab">Tab</div>
+            <div class="vKey">Q</div>
+            <div class="vKey">W</div>
+            <div class="vKey">E</div>
+            <div class="vKey">R</div>
+            <div class="vKey">T</div>
+            <div class="vKey">Y</div>
+            <div class="vKey">U</div>
+            <div class="vKey">I</div>
+            <div class="vKey">O</div>
+            <div class="vKey">P</div>
+            <div class="vKey vKeyS">{<br>[</div>
+            <div class="vKey vKeyS">}<br>]</div>
+            <div class="vKey vKeyS vKeyRight vKeyLine2">|<br>\</div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyLeft vKeyCapsLk">Caps</div>
+            <div class="vKey">A</div>
+            <div class="vKey">S</div>
+            <div class="vKey">D</div>
+            <div class="vKey">F</div>
+            <div class="vKey">G</div>
+            <div class="vKey">H</div>
+            <div class="vKey">J</div>
+            <div class="vKey">K</div>
+            <div class="vKey">L</div>
+            <div class="vKey vKeyS">:<br>;</div>
+            <div class="vKey vKeyS">"<br>'</div>
+            <div class="vKey vKeyRight vKeyEnter">Enter</div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyLeft" id="vKeyShift">Shift</div>
+            <div class="vKey">Z</div>
+            <div class="vKey">X</div>
+            <div class="vKey">C</div>
+            <div class="vKey">V</div>
+            <div class="vKey">B</div>
+            <div class="vKey">N</div>
+            <div class="vKey">M</div>
+            <div class="vKey vKeyS">&lt;<br>,</div>
+            <div class="vKey vKeyS">&gt;<br>.</div>
+            <div class="vKey vKeyS">?<br>/</div>
+            <div class="vKey vKeyRight" id="vKeyShift2">Shift</div>
+        </div>
+        <div class="vKeyRow">
+            <div class="vKey vKeyLeft" id="vKeyCtrl">Ctrl</div>
+            <div class="vKey">Fn</div>
+            <div class="vKey vKeyWin"><img src="/microsoft.svg" width="12.8" height="12.8"></div>
+            <div class="vKey" id="vKeyAlt">Alt</div>
+            <div class="vKey vKeySpace"></div>
+            <div class="vKey" id="vKeyAlt2">Alt</div>
+            <div class="vKey" id="vKeyCtrl2">Ctrl</div>
+            <div class="vKey vKeyWin"><img src="/arrow-left.svg" width="12.8" height="12.8"></div>
+            <div>
+                <div class="vKey vKeyWin vKeyUp"><img src="/arrow-up-short.svg" width="12.8" height="12.8"></div>
+                <div class="vKey vKeyWin vKeyUp"><img src="/arrow-up-short.svg" width="12.8" height="12.8"
+                        class="vKeyRev"></div>
+            </div>
+            <div class="vKey vKeyWin"><img src="/arrow-left.svg" width="12.8" height="12.8" class="vKeyRev"></div>
         </div>
     </div>
 
@@ -49,6 +308,8 @@
         let imgTemp = null
         let imgBinary = ""
         let processingScreen = false
+
+        let isDragKeyboard = false
 
         // 保持元素的长宽比和屏幕一致
         function setElementSize() {
@@ -135,34 +396,32 @@
 
         mc.on('panstart', (e) => {
             e.preventDefault()
-            startAt.x = e.center.x / elementSize[0]
-            startAt.y = e.center.y / elementSize[1]
+            let { x, y } = e.center
+            x = Math.round(x / elementSize[0] * screenSize[0])
+            y = Math.round(y / elementSize[1] * screenSize[1])
             socket.emit('panstart', {
-                x: startAt.x,
-                y: startAt.y,
-                p: e.pointerType
+                x, y, p: e.pointerType
             })
         }).on('panmove', (e) => {
             e.preventDefault()
             var { x, y } = e.center
             x = norm(x, clientWidth)
-            x = x / elementSize[0]
+            x = Math.round(x / elementSize[0] * screenSize[0])
             y = norm(y, clientHeight)
-            y = y / elementSize[1]
-            deltaY = e.deltaY / elementSize[1]
+            y = Math.round(y / elementSize[1] * screenSize[1])
+            deltaY = Math.round(e.deltaY / elementSize[1] * screenSize[1])
             socket.emit('panmove', { x, y, deltaY, p: e.pointerType })
         }).on('panend', (e) => {
             e.preventDefault()
-            startAt.x = 0
-            startAt.y = 0
+            let { x, y } = e.center
             socket.emit('panend', {
-                x: e.center.x / elementSize[0],
-                y: e.center.y / elementSize[1]
+                x: Math.round(x / elementSize[0] * screenSize[0]),
+                y: Math.round(y / elementSize[1] * screenSize[1])
             })
         }).on('tap', (e) => {
             let { x, y } = e.center
-            let RealX = x / elementSize[0]
-            let RealY = y / elementSize[1]
+            let RealX = Math.round(x / elementSize[0] * screenSize[0])
+            let RealY = Math.round(y / elementSize[1] * screenSize[1])
             console.log(RealX, RealY)
             e.preventDefault()
             socket.emit('tap', {
@@ -171,8 +430,8 @@
             })
         }).on('righttap', (e) => {
             let { x, y } = e.center
-            let RealX = x / elementSize[0]
-            let RealY = y / elementSize[1]
+            let RealX = Math.round(x / elementSize[0] * screenSize[0])
+            let RealY = Math.round(y / elementSize[1] * screenSize[1])
             //console.log(RealX, RealY)
             e.preventDefault()
             console.debug('righttap')
@@ -183,8 +442,8 @@
         }).on('press', (e) => {
             e.preventDefault()
             let { x, y } = e.center
-            let RealX = x / elementSize[0]
-            let RealY = y / elementSize[1]
+            let RealX = Math.round(x / elementSize[0] * screenSize[0])
+            let RealY = Math.round(y / elementSize[1] * screenSize[1])
             socket.emit('press', {
                 x: RealX,
                 y: RealY
@@ -192,8 +451,8 @@
         }).on('pressup', (e) => {
             e.preventDefault()
             let { x, y } = e.center
-            let RealX = x / elementSize[0]
-            let RealY = y / elementSize[1]
+            let RealX = Math.round(x / elementSize[0] * screenSize[0])
+            let RealY = Math.round(y / elementSize[1] * screenSize[1])
             socket.emit('pressup', {
                 x: RealX,
                 y: RealY
@@ -203,8 +462,8 @@
         // 设置滑动事件
         var myScroll = document.getElementById('myScroll')
         var mc2 = new Hammer.Manager(myScroll)
-        mc2.add(new Hammer.Pinch({ enable: true }))
-        mc2.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 }))
+        mc2.add(new Hammer.Pinch({ enable: true, interval: 100 }))
+        mc2.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL }))
 
         mc2.on('panleft', (e) => {
             e.preventDefault()
@@ -221,12 +480,18 @@
         }).on('pinchstart', (e) => {
             e.preventDefault()
             let { x, y } = e.center
-            let RealX = x / elementSize[0]
-            let RealY = y / elementSize[1]
+            let RealX = Math.round(x / elementSize[0] * screenSize[0])
+            let RealY = Math.round(y / elementSize[1] * screenSize[1])
             socket.emit("pinchstart", {
                 x: RealX,
                 y: RealY
             })
+        }).on('pinchin', (e) => {
+            e.preventDefault()
+            socket.emit("pinchmove", e.scale)
+        }).on('pinchout', (e) => {
+            e.preventDefault()
+            socket.emit("pinchmove", e.scale)
         }).on('pinchend', (e) => {
             e.preventDefault()
             socket.emit("pinchend")
@@ -238,12 +503,145 @@
             e.preventDefault()
             socket.emit("keydown", e.key)
         })
-
+ 
         document.addEventListener("keyup", (e) => {
             e.preventDefault()
             socket.emit("keyup", e.key)
         })
         */
+
+        const vKeyboard = document.getElementById("vKeyboard")
+        const vKeyboardControl = document.getElementById("vKeyboardControl")
+        var mc3 = new Hammer.Manager(vKeyboardControl)
+        mc3.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL }))
+        let mouseX = 0, mouseY = 0
+        let oL = 0, oT = 0
+        // Keyboard Event
+        mc3.on("panstart", (e) => {
+            e.preventDefault()
+            isDragKeyboard = true
+            mouseX = e.center.x
+            mouseY = e.center.y
+            //console.log(mouseX, mouseY, oL, oT)
+        }).on("panend", (e) => {
+            e.preventDefault()
+            //console.log("OK")
+            isDragKeyboard = false
+        }).on("panmove", (e) => {
+            e.preventDefault()
+            if (isDragKeyboard) {
+                oL = vKeyboard.offsetLeft
+                oT = vKeyboard.offsetTop
+                if (oL + e.center.x - mouseX < 0)
+                    vKeyboard.style.left = "0px"
+                else if (oL + e.center.x - mouseX + vKeyboard.offsetWidth > document.body.offsetWidth)
+                    vKeyboard.style.left = document.body.offsetWidth - vKeyboard.offsetWidth + "px"
+                else {
+                    vKeyboard.style.left = oL + e.center.x - mouseX + "px"
+                    mouseX = e.center.x
+                }
+                if (oT + e.center.y - mouseY < 0)
+                    vKeyboard.style.top = "0px"
+                else if (oT + e.center.y - mouseY + vKeyboard.offsetHeight > document.body.offsetHeight)
+                    vKeyboard.style.top = document.body.offsetHeight - vKeyboard.offsetHeight + "px"
+                else {
+                    vKeyboard.style.top = oT + e.center.y - mouseY + "px"
+                    mouseY = e.center.y
+                }
+            }
+        })
+        let keys = document.getElementsByClassName("vKey")
+        let isShift = false, isCtrl = false, isAlt = false
+        let shift1 = document.getElementById("vKeyShift")
+        let shift2 = document.getElementById("vKeyShift2")
+        let ctrl1 = document.getElementById("vKeyCtrl")
+        let ctrl2 = document.getElementById("vKeyCtrl2")
+        let alt1 = document.getElementById("vKeyAlt")
+        let alt2 = document.getElementById("vKeyAlt2")
+        for (let i in keys) {
+            keys[i].onpointerdown = (e) => {
+                e.preventDefault()
+                let oriText = e.target.innerHTML
+                if (e.target.tagName.toUpperCase() == "IMG")
+                    oriText = e.target.src
+                oriText = oriText.toLowerCase().trim()
+                let sendKey = ""
+                if (oriText == "shift") {
+                    isShift = !isShift
+                    if (isShift) {
+                        shift1.style.backgroundColor = "#1780db"
+                        shift1.style.color = "#fff"
+                        shift2.style.backgroundColor = "#1780db"
+                        shift2.style.color = "#fff"
+                        socket.emit("keydown", "SHIFT")
+                    }
+                    else {
+                        shift1.style.backgroundColor = "#fff"
+                        shift1.style.color = "#000"
+                        shift2.style.backgroundColor = "#fff"
+                        shift2.style.color = "#000"
+                        socket.emit("keyup", "SHIFT")
+                    }
+                }
+                else if (oriText == "ctrl") {
+                    isCtrl = !isCtrl
+                    if (isCtrl) {
+                        ctrl1.style.backgroundColor = "#47af50"
+                        ctrl1.style.color = "#fff"
+                        ctrl2.style.backgroundColor = "#47af50"
+                        ctrl2.style.color = "#fff"
+                        socket.emit("keydown", "CTRL")
+                    }
+                    else {
+                        ctrl1.style.backgroundColor = "#fff"
+                        ctrl1.style.color = "#000"
+                        ctrl2.style.backgroundColor = "#fff"
+                        ctrl2.style.color = "#000"
+                        socket.emit("keyup", "CTRL")
+                    }
+                }
+                else if (oriText == "alt") {
+                    isAlt = !isAlt
+                    if (isAlt) {
+                        alt1.style.backgroundColor = "#db2828"
+                        alt1.style.color = "#fff"
+                        alt2.style.backgroundColor = "#db2828"
+                        alt2.style.color = "#fff"
+                        socket.emit("keydown", "ALT")
+                    }
+                    else {
+                        alt1.style.backgroundColor = "#fff"
+                        alt1.style.color = "#000"
+                        alt2.style.backgroundColor = "#fff"
+                        alt2.style.color = "#000"
+                        socket.emit("keyup", "ALT")
+                    }
+                }
+                else {
+                    if (oriText.indexOf("<br>") != -1)
+                        sendKey = oriText.substr(-1, 1)
+                    else if (oriText.indexOf("backspace") != -1)
+                        sendKey = "BACKSPACE"
+                    else if (oriText.indexOf("microsoft") != -1)
+                        sendKey = "WIN"
+                    else if (oriText.length == 0)
+                        sendKey = "SPACEBAR"
+                    else
+                        sendKey = oriText
+                    socket.emit("keytap", sendKey)
+                }
+            }
+        }
+        let isShowKeyboard = false
+        function toggleKeyboard() {
+            isShowKeyboard = !isShowKeyboard
+            if (isShowKeyboard)
+                vKeyboard.style.display = "block"
+            else
+                vKeyboard.style.display = "none"
+        }
+        document.getElementById("keyboardToggle").addEventListener("click", toggleKeyboard)
+        document.getElementById("keyboardToggle2").addEventListener("click", toggleKeyboard)
     </script>
 </body>
 
